@@ -161,10 +161,14 @@ echo "CUSTOM_INSTANCE_NAME=Server $SERVER_NUMBER" >> .env
 sed -i 's/APP_ENV=local/APP_ENV=production/' .env
 sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
 
-# Optimize for production (but avoid caching that might cause Closure issues)
+# Optimize for production with route cache (now safe from Closure errors)
 echo "Optimizing for production..."
 sudo -u www-data php artisan config:cache
 sudo -u www-data php artisan route:cache
+
+# Test application with route cache enabled
+echo "Testing application with route cache..."
+sudo -u www-data php artisan tinker --execute="echo 'Laravel is working: ' . app()->version();"
 
 # Final test and fix for Closure::__set_state() error
 echo "Final application test and error prevention..."

@@ -18,7 +18,7 @@ class DevelopmentOnly
         if (!in_array(app()->environment(), ['local', 'staging'])) {
             abort(404);
         }
-        
+
         return $next($request);
     }
 }
