@@ -43,13 +43,26 @@
 
         <!-- Instance Info Card -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
-                <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Informasi Instance
-            </h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Informasi Instance
+                </h2>
+
+                <!-- Debug Button -->
+                <button onclick="openDebugModal()"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-colors duration-200 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+                        </path>
+                    </svg>
+                    Debug Info
+                </button>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="bg-blue-50 p-4 rounded-lg">
@@ -379,7 +392,140 @@
         setTimeout(() => {
             window.location.reload();
         }, 300000);
+
+        // Debug Modal Functions
+        function openDebugModal() {
+            document.getElementById('debugModal').classList.remove('hidden');
+            loadDebugInfo();
+        }
+
+        function closeDebugModal() {
+            document.getElementById('debugModal').classList.add('hidden');
+        }
+
+        function loadDebugInfo() {
+            const debugContent = document.getElementById('debugContent');
+            debugContent.innerHTML =
+                '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Loading debug info...</p></div>';
+
+            fetch('/instance/debug')
+                .then(response => response.json())
+                .then(data => {
+                    displayDebugInfo(data);
+                })
+                .catch(error => {
+                    debugContent.innerHTML =
+                        '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><strong>Error:</strong> ' +
+                        error.message + '</div>';
+                });
+        }
+
+        function displayDebugInfo(data) {
+            const debugContent = document.getElementById('debugContent');
+            let html = '';
+
+            // Environment Detection
+            html += '<div class="mb-6">';
+            html += '<h3 class="text-lg font-semibold mb-3 text-gray-800">Environment Detection</h3>';
+            html += '<div class="bg-' + (data.is_aws ? 'green' : 'red') + '-100 border border-' + (data.is_aws ? 'green' :
+                'red') + '-400 text-' + (data.is_aws ? 'green' : 'red') + '-700 px-4 py-3 rounded">';
+            html += '<strong>AWS Environment:</strong> ' + (data.is_aws ? 'YES' : 'NO');
+            html += '</div>';
+            html += '</div>';
+
+            // Detection Methods
+            html += '<div class="mb-6">';
+            html += '<h3 class="text-lg font-semibold mb-3 text-gray-800">Detection Methods</h3>';
+            html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+
+            Object.entries(data.detection_methods).forEach(([method, result]) => {
+                html += '<div class="bg-gray-50 p-3 rounded">';
+                html += '<strong>' + method.replace(/_/g, ' ').toUpperCase() + ':</strong> ';
+                html += '<span class="text-' + (result ? 'green' : 'red') + '-600">' + (result ? 'PASS' : 'FAIL') +
+                    '</span>';
+                html += '</div>';
+            });
+
+            html += '</div>';
+            html += '</div>';
+
+            // Raw Metadata
+            if (data.raw_metadata) {
+                html += '<div class="mb-6">';
+                html += '<h3 class="text-lg font-semibold mb-3 text-gray-800">Raw Metadata Response</h3>';
+                html += '<div class="bg-gray-100 p-4 rounded overflow-auto max-h-64">';
+                html += '<pre class="text-sm">' + JSON.stringify(data.raw_metadata, null, 2) + '</pre>';
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // Environment Variables
+            if (data.environment_vars) {
+                html += '<div class="mb-6">';
+                html += '<h3 class="text-lg font-semibold mb-3 text-gray-800">AWS Environment Variables</h3>';
+                html += '<div class="grid grid-cols-1 gap-2">';
+
+                Object.entries(data.environment_vars).forEach(([key, value]) => {
+                    html += '<div class="bg-blue-50 p-2 rounded">';
+                    html += '<strong>' + key + ':</strong> ';
+                    html += '<code class="text-sm">' + (value || 'Not Set') + '</code>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // System Info
+            if (data.system_info) {
+                html += '<div class="mb-6">';
+                html += '<h3 class="text-lg font-semibold mb-3 text-gray-800">System Information</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+
+                Object.entries(data.system_info).forEach(([key, value]) => {
+                    html += '<div class="bg-yellow-50 p-3 rounded">';
+                    html += '<strong>' + key.replace(/_/g, ' ').toUpperCase() + ':</strong><br>';
+                    html += '<code class="text-sm break-all">' + value + '</code>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                html += '</div>';
+            }
+
+            debugContent.innerHTML = html;
+        }
     </script>
+
+    <!-- Debug Modal -->
+    <div id="debugModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">AWS Detection Debug Information</h3>
+                    <button onclick="closeDebugModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="debugContent" class="mt-4">
+                    <!-- Debug content will be loaded here -->
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeDebugModal()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Close
+                    </button>
+                    <button onclick="loadDebugInfo()"
+                        class="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

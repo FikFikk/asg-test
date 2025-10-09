@@ -37,22 +37,48 @@ composer install --no-dev --optimize-autoloader
 php artisan key:generate
 
 # Set environment variables untuk instance
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
-INSTANCE_TYPE=$(curl -s http://169.254.169.254/latest/meta-data/instance-type)
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null || echo "i-unknown")
+AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null || echo "unknown-zone")
+INSTANCE_TYPE=$(curl -s http://169.254.169.254/latest/meta-data/instance-type 2>/dev/null || echo "unknown")
+LOCAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null || echo "127.0.0.1")
+PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || echo "N/A")
 
 # Buat file .env dari .env.example
 cp .env.example .env
 
-# Set instance name berdasarkan AZ dan Instance ID (8 karakter pertama)
-SHORT_INSTANCE_ID=$(echo $INSTANCE_ID | cut -c3-10)
-INSTANCE_NAME="Web-Server-${AZ}-${SHORT_INSTANCE_ID}"
-echo "INSTANCE_NAME=${INSTANCE_NAME}" >> .env
+# Generate Server name berdasarkan Instance ID
+if [[ $INSTANCE_ID =~ ^i-[a-f0-9]+$ ]]; then
+    # Extract hex dari instance ID dan convert ke decimal untuk server number
+    HEX_PART=${INSTANCE_ID:2}
+    LAST_4_CHARS=${HEX_PART: -4}
+    DECIMAL_VALUE=$((16#$LAST_4_CHARS))
+    SERVER_NUMBER=$(( ($DECIMAL_VALUE % 10) + 1 ))
+    INSTANCE_NAME="Server $SERVER_NUMBER"
+else
+    INSTANCE_NAME="Server 1"
+fi
+
+echo "INSTANCE_NAME=\"$INSTANCE_NAME\"" >> .env
 
 # Tambahkan informasi instance lainnya ke .env
-echo "AWS_INSTANCE_ID=${INSTANCE_ID}" >> .env
-echo "AWS_AVAILABILITY_ZONE=${AZ}" >> .env
-echo "AWS_INSTANCE_TYPE=${INSTANCE_TYPE}" >> .env
+echo "AWS_INSTANCE_ID=$INSTANCE_ID" >> .env
+echo "AWS_AVAILABILITY_ZONE=$AZ" >> .env
+echo "AWS_INSTANCE_TYPE=$INSTANCE_TYPE" >> .env
+echo "AWS_REGION=${AZ%?}" >> .env
+
+# Set as system environment variables juga
+export INSTANCE_NAME="$INSTANCE_NAME"
+export AWS_INSTANCE_ID="$INSTANCE_ID"
+export AWS_AVAILABILITY_ZONE="$AZ"
+export AWS_INSTANCE_TYPE="$INSTANCE_TYPE"
+export AWS_REGION="${AZ%?}"
+
+# Add to system environment
+echo "export INSTANCE_NAME=\"$INSTANCE_NAME\"" >> /etc/environment
+echo "export AWS_INSTANCE_ID=\"$INSTANCE_ID\"" >> /etc/environment
+echo "export AWS_AVAILABILITY_ZONE=\"$AZ\"" >> /etc/environment
+echo "export AWS_INSTANCE_TYPE=\"$INSTANCE_TYPE\"" >> /etc/environment
+echo "export AWS_REGION=\"${AZ%?}\"" >> /etc/environment
 
 # Configure database (sesuaikan dengan setup Anda)
 echo "DB_CONNECTION=mysql" >> .env

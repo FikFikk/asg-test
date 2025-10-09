@@ -12,6 +12,7 @@ Route::get('/instance', [InstanceController::class, 'index'])->name('instance.in
 Route::get('/instance/info', [InstanceController::class, 'getInstanceInfoApi'])->name('instance.info');
 Route::get('/instance/cpu', [InstanceController::class, 'getCurrentCpu'])->name('instance.cpu');
 Route::post('/instance/stress-cpu', [InstanceController::class, 'stressCpu'])->name('instance.stress-cpu');
+Route::get('/instance/debug', [InstanceController::class, 'debugInfo'])->name('instance.debug');
 
 // Development & Debug Routes (hanya untuk environment local/staging)
 Route::group(['middleware' => function ($request, $next) {
