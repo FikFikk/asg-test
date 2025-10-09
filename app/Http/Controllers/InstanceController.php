@@ -20,32 +20,32 @@ class InstanceController extends Controller
     {
         // Force check AWS environment dengan multiple methods
         $isAwsInstance = $this->isRunningOnAws();
-        
+
         if ($isAwsInstance) {
             try {
                 // Mendapatkan Instance ID dengan multiple fallbacks
                 $instanceId = $this->getMetadataWithFallback('instance-id');
-                
+
                 if ($instanceId === 'N/A') {
                     // Fallback methods untuk mendapatkan instance ID
                     $instanceId = $this->getInstanceIdFromSystem();
                 }
-                
+
                 // Mendapatkan Instance Type
                 $instanceType = $this->getMetadataWithFallback('instance-type');
-                
+
                 // Mendapatkan Availability Zone
                 $availabilityZone = $this->getMetadataWithFallback('placement/availability-zone');
-                
+
                 // Mendapatkan Local IP
                 $localIp = $this->getMetadataWithFallback('local-ipv4');
-                
+
                 // Mendapatkan Public IP (jika ada)
                 $publicIp = $this->getMetadataWithFallback('public-ipv4');
-                
+
                 // Mendapatkan Instance Name dari berbagai sumber
                 $instanceName = $this->getInstanceName($instanceId, $availabilityZone);
-                
+
                 return [
                     'instance_id' => $instanceId,
                     'instance_name' => $instanceName,
@@ -64,16 +64,16 @@ class InstanceController extends Controller
             return $this->getLocalInstanceInfo();
         }
     }
-    
+
     private function getMetadataWithFallback($path)
     {
         // Try the standard metadata endpoint first
         $value = $this->getMetadata($path);
-        
+
         if ($value !== 'N/A') {
             return $value;
         }
-        
+
         // Fallback methods for specific metadata
         switch ($path) {
             case 'instance-id':
@@ -88,7 +88,7 @@ class InstanceController extends Controller
                 return 'N/A';
         }
     }
-    
+
     private function getInstanceIdFromSystem()
     {
         try {
@@ -97,14 +97,14 @@ class InstanceController extends Controller
             if ($instanceId) {
                 return $instanceId;
             }
-            
+
             // Method 2: Try to read from cloud-init or system files
             $possibleFiles = [
                 '/var/lib/cloud/data/instance-id',
                 '/opt/aws/bin/ec2-metadata --instance-id',
                 '/sys/devices/virtual/dmi/id/board_asset_tag'
             ];
-            
+
             foreach ($possibleFiles as $file) {
                 if (strpos($file, 'ec2-metadata') !== false) {
                     $output = @shell_exec($file . ' 2>/dev/null');
@@ -118,17 +118,16 @@ class InstanceController extends Controller
                     }
                 }
             }
-            
+
             // Method 3: Generate a consistent fake instance ID based on system info
             $hostname = gethostname();
             $machineId = @file_get_contents('/etc/machine-id') ?: $hostname;
             return 'i-' . substr(md5($machineId), 0, 17);
-            
         } catch (\Exception $e) {
             return 'i-' . substr(md5(gethostname() . time()), 0, 17);
         }
     }
-    
+
     private function getInstanceTypeFromSystem()
     {
         try {
@@ -137,12 +136,12 @@ class InstanceController extends Controller
             if ($type) {
                 return $type;
             }
-            
+
             // Try to get from system info
             $memInfo = @file_get_contents('/proc/meminfo');
             if ($memInfo && preg_match('/MemTotal:\s+(\d+)\s+kB/', $memInfo, $matches)) {
                 $memMB = intval($matches[1]) / 1024;
-                
+
                 // Rough mapping based on memory
                 if ($memMB < 1500) {
                     return 't2.micro';
@@ -154,14 +153,14 @@ class InstanceController extends Controller
                     return 't2.large';
                 }
             }
-            
+
             return 't2.micro'; // Default
-            
+
         } catch (\Exception $e) {
             return 't2.micro';
         }
     }
-    
+
     private function getAZFromSystem()
     {
         try {
@@ -170,18 +169,19 @@ class InstanceController extends Controller
             if ($az) {
                 return $az;
             }
-            
+
             $region = getenv('AWS_REGION') ?: getenv('AWS_DEFAULT_REGION') ?: env('AWS_REGION');
             if ($region) {
                 return $region . 'a'; // Default to 'a' zone
             }
-            
+
             return 'ap-southeast-1a'; // Default for your region
-            
+
         } catch (\Exception $e) {
             return 'ap-southeast-1a';
         }
-    }    private function getMetadata($path)
+    }
+    private function getMetadata($path)
     {
         try {
             // Method 1: Using file_get_contents (sometimes more reliable)
@@ -195,14 +195,14 @@ class InstanceController extends Controller
                     ]
                 ]
             ]);
-            
+
             $url = "http://169.254.169.254/latest/meta-data/{$path}";
             $response = @file_get_contents($url, false, $context);
-            
+
             if ($response !== false && $response !== '') {
                 return trim($response);
             }
-            
+
             // Method 2: Fallback to Http client
             $response = Http::timeout(3)
                 ->withHeaders([
@@ -210,22 +210,21 @@ class InstanceController extends Controller
                     'X-aws-ec2-metadata-token-ttl-seconds' => '21600'
                 ])
                 ->get($url);
-                
+
             if ($response->successful() && $response->body() !== '') {
                 return trim($response->body());
             }
-            
         } catch (\Exception $e) {
             Log::warning("Failed to get AWS metadata for path: {$path}", ['error' => $e->getMessage()]);
         }
-        
+
         return 'N/A';
     }
 
     private function isRunningOnAws()
     {
         // Multiple ways to detect if we're running on AWS
-        
+
         // Method 1: Check if we can reach AWS metadata service
         try {
             $context = stream_context_create([
@@ -235,7 +234,7 @@ class InstanceController extends Controller
                     'header' => "User-Agent: Laravel-Instance-Monitor\r\n"
                 ]
             ]);
-            
+
             $response = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id', false, $context);
             if ($response !== false && strpos($response, 'i-') === 0) {
                 return true;
@@ -243,12 +242,12 @@ class InstanceController extends Controller
         } catch (\Exception $e) {
             // Continue to next method
         }
-        
+
         // Method 2: Check for AWS-specific environment indicators
         if (getenv('AWS_EXECUTION_ENV') || getenv('AWS_REGION') || getenv('AWS_DEFAULT_REGION')) {
             return true;
         }
-        
+
         // Method 3: Check for EC2 instance metadata in system info
         if (file_exists('/sys/hypervisor/uuid')) {
             $uuid = @file_get_contents('/sys/hypervisor/uuid');
@@ -256,22 +255,22 @@ class InstanceController extends Controller
                 return true;
             }
         }
-        
+
         // Method 4: Check for AWS instance store
         if (file_exists('/dev/nvme0n1') || file_exists('/dev/xvda1')) {
             return true;
         }
-        
+
         // Method 5: Check hostname pattern (AWS instances usually have specific patterns)
         $hostname = gethostname();
         if ($hostname && (
-            strpos($hostname, 'ip-') === 0 || 
+            strpos($hostname, 'ip-') === 0 ||
             strpos($hostname, 'ec2-') !== false ||
             preg_match('/^ip-\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3}/', $hostname)
         )) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -317,13 +316,13 @@ class InstanceController extends Controller
         // 3. Auto-generated dari AZ dan Instance ID
         // 4. Hostname
         // 5. Default fallback
-        
+
         // 1. Cek environment variable
         $envName = env('INSTANCE_NAME');
         if ($envName && $envName !== '') {
             return $envName;
         }
-        
+
         // 2. Generate "Server X" berdasarkan instance ID untuk AWS
         if ($instanceId !== 'N/A' && strpos($instanceId, 'i-') === 0) {
             // Ambil bagian hex dari instance ID dan convert ke angka
@@ -332,13 +331,13 @@ class InstanceController extends Controller
             $serverNumber = ($numericValue % 10) + 1; // Generate 1-10
             return "Server {$serverNumber}";
         }
-        
+
         // 3. Auto-generate dari AZ dan Instance ID untuk format yang konsisten
         if ($availabilityZone && $instanceId !== 'N/A') {
             $shortInstanceId = substr(str_replace('i-', '', $instanceId), 0, 8);
             return "Web-Server-{$availabilityZone}-{$shortInstanceId}";
         }
-        
+
         // 4. Gunakan hostname jika tersedia
         $hostname = gethostname();
         if ($hostname && $hostname !== false) {
@@ -349,10 +348,11 @@ class InstanceController extends Controller
             }
             return "Server-{$hostname}";
         }
-        
+
         // 5. Fallback default
         return $instanceId !== 'N/A' ? "Instance-{$instanceId}" : 'Unknown-Server';
-    }    private function getCPUUsage()
+    }
+    private function getCPUUsage()
     {
         try {
             if (PHP_OS_FAMILY === 'Windows') {
@@ -427,7 +427,7 @@ class InstanceController extends Controller
             'timestamp' => now()->toISOString()
         ]);
     }
-    
+
     public function debugInfo()
     {
         $debugInfo = [
@@ -458,7 +458,7 @@ class InstanceController extends Controller
             ],
             'final_instance_info' => $this->getInstanceInfo(),
         ];
-        
+
         return response()->json($debugInfo, 200, [], JSON_PRETTY_PRINT);
     }
 }

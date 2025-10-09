@@ -107,47 +107,128 @@ echo "Availability Zone: $AZ"
 echo "Instance Type: $INSTANCE_TYPE"
 
 # Clone Laravel application
-echo "Setting up Laravel application..."
+echo "Cloning Laravel application..."
 cd /var/www
 rm -rf html
 git clone https://github.com/FikFikk/asg-test.git html
+cd html
 
-# Set proper permissions
+# Set proper ownership and permissions
 chown -R www-data:www-data /var/www/html
 chmod -R 755 /var/www/html
 chmod -R 775 /var/www/html/storage
 chmod -R 775 /var/www/html/bootstrap/cache
 
-# Install Laravel dependencies
-cd /var/www/html
-sudo -u www-data composer install --no-dev --optimize-autoloader
+# Install dependencies
+echo "Installing Composer dependencies..."
+sudo -u www-data composer install --no-dev --optimize-autoloader --no-interaction
 
-# Create .env file
-sudo -u www-data cp .env.example .env
-
-# Generate application key
-sudo -u www-data php artisan key:generate
-
-# Generate Server name berdasarkan Instance ID
-if [[ $INSTANCE_ID =~ ^i-[a-f0-9]+$ ]]; then
-    # Extract hex dari instance ID dan convert ke decimal untuk server number
-    HEX_PART=${INSTANCE_ID:2}
-    LAST_4_CHARS=${HEX_PART: -4}
-    DECIMAL_VALUE=$((16#$LAST_4_CHARS))
-    SERVER_NUMBER=$(( ($DECIMAL_VALUE % 10) + 1 ))
-    INSTANCE_NAME="Server $SERVER_NUMBER"
-else
-    INSTANCE_NAME="Server 1"
+# Setup environment
+echo "Setting up Laravel environment..."
+if [ ! -f .env ]; then
+    sudo -u www-data cp .env.example .env
 fi
 
-echo "Generated Instance Name: $INSTANCE_NAME"
+# Generate application key
+sudo -u www-data php artisan key:generate --force
 
-# Update .env with instance information
-echo "INSTANCE_NAME=\"$INSTANCE_NAME\"" >> .env
+# Clear all caches to prevent Closure::__set_state() error
+echo "Clearing Laravel caches..."
+sudo -u www-data php artisan cache:clear
+sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan route:clear
+sudo -u www-data php artisan view:clear
+sudo -u www-data php artisan clear-compiled
+
+# Remove any cached files that might cause issues
+rm -rf bootstrap/cache/*.php
+rm -rf storage/framework/cache/data/*
+rm -rf storage/framework/sessions/*
+rm -rf storage/framework/views/*
+
+# Set environment variables for AWS detection
+echo "Setting up environment variables..."
 echo "AWS_INSTANCE_ID=$INSTANCE_ID" >> .env
 echo "AWS_AVAILABILITY_ZONE=$AZ" >> .env
-echo "AWS_INSTANCE_TYPE=$INSTANCE_TYPE" >> .env
 echo "AWS_REGION=${AZ%?}" >> .env
+
+# Generate Server name based on instance ID hash
+INSTANCE_HASH=$(echo -n "$INSTANCE_ID" | md5sum | cut -c1-8)
+SERVER_NUMBER=$((0x${INSTANCE_HASH:0:4} % 999 + 1))
+echo "CUSTOM_INSTANCE_NAME=Server $SERVER_NUMBER" >> .env
+
+# Set proper app environment
+sed -i 's/APP_ENV=local/APP_ENV=production/' .env
+sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
+
+# Optimize for production (but avoid caching that might cause Closure issues)
+echo "Optimizing for production..."
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+
+# Final test and fix for Closure::__set_state() error
+echo "Final application test and error prevention..."
+
+# Test if the application loads without errors
+HTTP_TEST=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/instance)
+echo "Application HTTP Status: $HTTP_TEST" >> /var/log/user-data.log
+
+if [ "$HTTP_TEST" != "200" ]; then
+    echo "Application not responding correctly, applying emergency cache clear..." >> /var/log/user-data.log
+    
+    # Emergency cache clear
+    sudo -u www-data php artisan cache:clear --no-interaction
+    sudo -u www-data php artisan config:clear --no-interaction
+    sudo -u www-data php artisan route:clear --no-interaction
+    sudo -u www-data php artisan view:clear --no-interaction
+    sudo -u www-data php artisan clear-compiled --no-interaction
+    
+    # Manual cleanup of problematic cache files
+    rm -rf bootstrap/cache/*.php
+    rm -rf storage/framework/cache/data/*
+    rm -rf storage/framework/sessions/*
+    rm -rf storage/framework/views/*
+    
+    # Create emergency info page
+    cat > /var/www/html/public/emergency.php << 'PHP_EOF'
+<?php
+echo "<h1>Emergency Page</h1>";
+echo "<p>Server Time: " . date('Y-m-d H:i:s') . "</p>";
+echo "<p>If you see this, Laravel had cache issues but server is working.</p>";
+echo "<p><a href='/emergency/clear-cache'>Clear All Caches</a></p>";
+echo "<p><a href='/instance'>Try Laravel App</a></p>";
+phpinfo();
+?>
+PHP_EOF
+
+    # Restart PHP-FPM and Nginx
+    systemctl restart php8.2-fpm
+    systemctl restart nginx
+    
+    sleep 3
+    HTTP_TEST_RETRY=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/instance)
+    echo "Application HTTP Status after fix: $HTTP_TEST_RETRY" >> /var/log/user-data.log
+fi
+
+# Create a health check script
+cat > /var/www/html/public/health.php << 'HEALTH_EOF'
+<?php
+header('Content-Type: application/json');
+echo json_encode([
+    'status' => 'ok',
+    'timestamp' => date('c'),
+    'server' => $_SERVER['SERVER_NAME'] ?? 'unknown',
+    'php_version' => PHP_VERSION
+]);
+?>
+HEALTH_EOF
+
+echo "=== Setup completed at $(date) ==="
+echo "Application URLs:"
+echo "- Main App: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/instance"
+echo "- Health Check: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/health.php"
+echo "- Emergency Page: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/emergency.php"
+echo "- Cache Clear: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/emergency/clear-cache"
 
 # Set as system environment variables
 export INSTANCE_NAME="$INSTANCE_NAME"
