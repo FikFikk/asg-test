@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,20 +11,25 @@
         .btn-primary {
             @apply bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300;
         }
+
         .btn-success {
             @apply bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300;
         }
+
         .btn-warning {
             @apply bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded transition duration-300;
         }
+
         .btn-danger {
             @apply bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300;
         }
+
         .btn-secondary {
             @apply bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300;
         }
     </style>
 </head>
+
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
@@ -31,7 +37,8 @@
             <h1 class="text-4xl font-bold text-gray-800 mb-2">🛠️ Laravel Development Tools</h1>
             <p class="text-gray-600">Cache Management & Optimization Tools</p>
             <div class="mt-4">
-                <span class="inline-block bg-{{ app()->environment() === 'local' ? 'green' : 'yellow' }}-100 text-{{ app()->environment() === 'local' ? 'green' : 'yellow' }}-800 text-sm font-medium px-3 py-1 rounded-full">
+                <span
+                    class="inline-block bg-{{ app()->environment() === 'local' ? 'green' : 'yellow' }}-100 text-{{ app()->environment() === 'local' ? 'green' : 'yellow' }}-800 text-sm font-medium px-3 py-1 rounded-full">
                     Environment: {{ strtoupper(app()->environment()) }}
                 </span>
             </div>
@@ -51,13 +58,13 @@
         </div>
 
         <!-- Success/Error Messages -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
                 <strong>Success!</strong> {{ session('success') }}
             </div>
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
                 <strong>Error!</strong> {{ session('error') }}
             </div>
@@ -68,7 +75,7 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span class="mr-2">🗂️</span>Cache Management
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Cache Operations -->
                 <div class="bg-blue-50 p-4 rounded-lg">
@@ -164,7 +171,7 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span class="mr-2">🗄️</span>Database & Storage
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Migrations -->
                 <div class="bg-blue-50 p-4 rounded-lg">
@@ -172,11 +179,13 @@
                     <div class="space-y-2">
                         <form method="POST" action="{{ route('dev.migrate') }}" class="inline">
                             @csrf
-                            <button type="submit" class="w-full btn-primary text-sm" onclick="return confirm('Run migrations?')">Run Migrations</button>
+                            <button type="submit" class="w-full btn-primary text-sm"
+                                onclick="return confirm('Run migrations?')">Run Migrations</button>
                         </form>
                         <form method="POST" action="{{ route('dev.migrate.fresh') }}" class="inline">
                             @csrf
-                            <button type="submit" class="w-full btn-danger text-sm" onclick="return confirm('This will drop all tables! Continue?')">Fresh Migrate</button>
+                            <button type="submit" class="w-full btn-danger text-sm"
+                                onclick="return confirm('This will drop all tables! Continue?')">Fresh Migrate</button>
                         </form>
                         <form method="POST" action="{{ route('dev.migrate.seed') }}" class="inline">
                             @csrf
@@ -215,10 +224,12 @@
                 <div class="bg-red-50 p-4 rounded-lg">
                     <h3 class="font-semibold text-red-800 mb-3">📝 Logs</h3>
                     <div class="space-y-2">
-                        <a href="{{ route('dev.logs') }}" class="block w-full btn-secondary text-sm text-center">View Logs</a>
+                        <a href="{{ route('dev.logs') }}" class="block w-full btn-secondary text-sm text-center">View
+                            Logs</a>
                         <form method="POST" action="{{ route('dev.logs.clear') }}" class="inline">
                             @csrf
-                            <button type="submit" class="w-full btn-danger text-sm" onclick="return confirm('Clear all logs?')">Clear Logs</button>
+                            <button type="submit" class="w-full btn-danger text-sm"
+                                onclick="return confirm('Clear all logs?')">Clear Logs</button>
                         </form>
                     </div>
                 </div>
@@ -230,16 +241,18 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
                 <span class="mr-2">⚡</span>Quick Actions
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Development Setup -->
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="font-semibold text-gray-800 mb-3">🛠️ Development Setup</h3>
                     <div class="space-y-2 text-sm">
-                        <button onclick="runMultipleCommands(['cache:clear', 'config:clear', 'route:clear', 'view:clear'])" 
-                                class="w-full btn-warning text-sm">Clear All Caches</button>
-                        <button onclick="runMultipleCommands(['config:cache', 'route:cache', 'view:cache', 'optimize'])" 
-                                class="w-full btn-primary text-sm">Optimize for Production</button>
+                        <button
+                            onclick="runMultipleCommands(['cache:clear', 'config:clear', 'route:clear', 'view:clear'])"
+                            class="w-full btn-warning text-sm">Clear All Caches</button>
+                        <button
+                            onclick="runMultipleCommands(['config:cache', 'route:cache', 'view:cache', 'optimize'])"
+                            class="w-full btn-primary text-sm">Optimize for Production</button>
                     </div>
                 </div>
 
@@ -258,9 +271,15 @@
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="font-semibold text-gray-800 mb-3">💾 Cache Status</h3>
                     <div class="text-sm space-y-1">
-                        <p><strong>Config:</strong> <span class="text-{{ file_exists(base_path('bootstrap/cache/config.php')) ? 'green' : 'red' }}-600">{{ file_exists(base_path('bootstrap/cache/config.php')) ? 'Cached' : 'Not Cached' }}</span></p>
-                        <p><strong>Routes:</strong> <span class="text-{{ file_exists(base_path('bootstrap/cache/routes-v7.php')) ? 'green' : 'red' }}-600">{{ file_exists(base_path('bootstrap/cache/routes-v7.php')) ? 'Cached' : 'Not Cached' }}</span></p>
-                        <p><strong>Views:</strong> <span class="text-{{ count(glob(storage_path('framework/views/*'))) > 0 ? 'green' : 'red' }}-600">{{ count(glob(storage_path('framework/views/*'))) > 0 ? 'Cached' : 'Not Cached' }}</span></p>
+                        <p><strong>Config:</strong> <span
+                                class="text-{{ file_exists(base_path('bootstrap/cache/config.php')) ? 'green' : 'red' }}-600">{{ file_exists(base_path('bootstrap/cache/config.php')) ? 'Cached' : 'Not Cached' }}</span>
+                        </p>
+                        <p><strong>Routes:</strong> <span
+                                class="text-{{ file_exists(base_path('bootstrap/cache/routes-v7.php')) ? 'green' : 'red' }}-600">{{ file_exists(base_path('bootstrap/cache/routes-v7.php')) ? 'Cached' : 'Not Cached' }}</span>
+                        </p>
+                        <p><strong>Views:</strong> <span
+                                class="text-{{ count(glob(storage_path('framework/views/*'))) > 0 ? 'green' : 'red' }}-600">{{ count(glob(storage_path('framework/views/*'))) > 0 ? 'Cached' : 'Not Cached' }}</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -269,7 +288,7 @@
 
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        
+
         function runMultipleCommands(commands) {
             if (confirm(`Run the following commands:\n${commands.join('\n')}`)) {
                 // For now, redirect to individual endpoints
@@ -277,7 +296,7 @@
                 alert('Feature coming soon! Use individual buttons for now.');
             }
         }
-        
+
         // Auto-hide success/error messages after 5 seconds
         setTimeout(() => {
             const alerts = document.querySelectorAll('.bg-green-100, .bg-red-100');
@@ -289,4 +308,5 @@
         }, 5000);
     </script>
 </body>
+
 </html>

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Information</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
@@ -17,12 +19,19 @@
         <!-- Navigation -->
         <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
             <div class="flex flex-wrap gap-2 justify-center">
-                <a href="{{ route('dev.cache') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">🗂️ Cache Management</a>
-                <a href="{{ route('dev.info') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">ℹ️ System Info</a>
-                <a href="{{ route('dev.routes') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🛣️ Routes</a>
-                <a href="{{ route('dev.env') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🔧 Environment</a>
-                <a href="{{ route('dev.logs') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">📝 Logs</a>
-                <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🏠 Home</a>
+                <a href="{{ route('dev.cache') }}"
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">🗂️ Cache
+                    Management</a>
+                <a href="{{ route('dev.info') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">ℹ️ System Info</a>
+                <a href="{{ route('dev.routes') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🛣️ Routes</a>
+                <a href="{{ route('dev.env') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🔧 Environment</a>
+                <a href="{{ route('dev.logs') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">📝 Logs</a>
+                <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🏠
+                    Home</a>
             </div>
         </div>
 
@@ -76,7 +85,8 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Debug Mode:</span>
-                        <span class="text-{{ config('app.debug') ? 'green' : 'red' }}-600">{{ config('app.debug') ? 'ON' : 'OFF' }}</span>
+                        <span
+                            class="text-{{ config('app.debug') ? 'green' : 'red' }}-600">{{ config('app.debug') ? 'ON' : 'OFF' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Application URL:</span>
@@ -138,19 +148,23 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Driver:</span>
-                        <span class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.driver') }}</span>
+                        <span
+                            class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.driver') }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Host:</span>
-                        <span class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.host') ?: 'N/A' }}</span>
+                        <span
+                            class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.host') ?: 'N/A' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Port:</span>
-                        <span class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.port') ?: 'N/A' }}</span>
+                        <span
+                            class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.port') ?: 'N/A' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-medium">Database:</span>
-                        <span class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.database') ?: 'N/A' }}</span>
+                        <span
+                            class="text-purple-600">{{ config('database.connections.' . config('database.default') . '.database') ?: 'N/A' }}</span>
                     </div>
                 </div>
             </div>
@@ -190,7 +204,7 @@
                     <span class="mr-2">🔌</span>PHP Extensions
                 </h2>
                 <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                    @foreach(get_loaded_extensions() as $extension)
+                    @foreach (get_loaded_extensions() as $extension)
                         <div class="bg-gray-100 px-2 py-1 rounded text-sm">{{ $extension }}</div>
                     @endforeach
                 </div>
@@ -235,4 +249,5 @@
         </div>
     </div>
 </body>
+
 </html>

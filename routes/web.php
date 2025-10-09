@@ -20,77 +20,77 @@ Route::group(['middleware' => function ($request, $next) {
     }
     return $next($request);
 }], function () {
-    
+
     // Cache Management Routes
     Route::prefix('dev')->group(function () {
-        
+
         // Cache Operations
         Route::get('/cache', function () {
             return view('dev.cache');
         })->name('dev.cache');
-        
+
         Route::post('/cache/clear', function () {
             \Illuminate\Support\Facades\Artisan::call('cache:clear');
             return back()->with('success', 'Application cache cleared successfully!');
         })->name('dev.cache.clear');
-        
+
         Route::post('/cache/config', function () {
             \Illuminate\Support\Facades\Artisan::call('config:cache');
             return back()->with('success', 'Configuration cached successfully!');
         })->name('dev.cache.config');
-        
+
         Route::post('/cache/route', function () {
             \Illuminate\Support\Facades\Artisan::call('route:cache');
             return back()->with('success', 'Routes cached successfully!');
         })->name('dev.cache.route');
-        
+
         Route::post('/cache/view', function () {
             \Illuminate\Support\Facades\Artisan::call('view:cache');
             return back()->with('success', 'Views cached successfully!');
         })->name('dev.cache.view');
-        
+
         Route::post('/cache/event', function () {
             \Illuminate\Support\Facades\Artisan::call('event:cache');
             return back()->with('success', 'Events cached successfully!');
         })->name('dev.cache.event');
-        
+
         // Clear Operations
         Route::post('/clear/config', function () {
             \Illuminate\Support\Facades\Artisan::call('config:clear');
             return back()->with('success', 'Configuration cache cleared!');
         })->name('dev.clear.config');
-        
+
         Route::post('/clear/route', function () {
             \Illuminate\Support\Facades\Artisan::call('route:clear');
             return back()->with('success', 'Route cache cleared!');
         })->name('dev.clear.route');
-        
+
         Route::post('/clear/view', function () {
             \Illuminate\Support\Facades\Artisan::call('view:clear');
             return back()->with('success', 'View cache cleared!');
         })->name('dev.clear.view');
-        
+
         Route::post('/clear/event', function () {
             \Illuminate\Support\Facades\Artisan::call('event:clear');
             return back()->with('success', 'Event cache cleared!');
         })->name('dev.clear.event');
-        
+
         // Optimization
         Route::post('/optimize', function () {
             \Illuminate\Support\Facades\Artisan::call('optimize');
             return back()->with('success', 'Application optimized successfully!');
         })->name('dev.optimize');
-        
+
         Route::post('/optimize/clear', function () {
             \Illuminate\Support\Facades\Artisan::call('optimize:clear');
             return back()->with('success', 'Optimization cache cleared!');
         })->name('dev.optimize.clear');
-        
+
         // Debug Info
         Route::get('/info', function () {
             return view('dev.info');
         })->name('dev.info');
-        
+
         Route::get('/routes', function () {
             $routes = collect(\Illuminate\Support\Facades\Route::getRoutes())->map(function ($route) {
                 return [
@@ -101,10 +101,10 @@ Route::group(['middleware' => function ($request, $next) {
                     'middleware' => implode(', ', $route->gatherMiddleware()),
                 ];
             });
-            
+
             return view('dev.routes', compact('routes'));
         })->name('dev.routes');
-        
+
         // Environment Info
         Route::get('/env', function () {
             $envVars = [
@@ -118,58 +118,58 @@ Route::group(['middleware' => function ($request, $next) {
                 'QUEUE_CONNECTION' => env('QUEUE_CONNECTION'),
                 'INSTANCE_NAME' => env('INSTANCE_NAME'),
             ];
-            
+
             return view('dev.env', compact('envVars'));
         })->name('dev.env');
-        
+
         // Storage Links
         Route::post('/storage/link', function () {
             \Illuminate\Support\Facades\Artisan::call('storage:link');
             return back()->with('success', 'Storage link created successfully!');
         })->name('dev.storage.link');
-        
+
         // Queue Operations
         Route::post('/queue/work', function () {
             \Illuminate\Support\Facades\Artisan::call('queue:work', ['--once' => true]);
             return back()->with('success', 'Queue processed!');
         })->name('dev.queue.work');
-        
+
         Route::post('/queue/restart', function () {
             \Illuminate\Support\Facades\Artisan::call('queue:restart');
             return back()->with('success', 'Queue workers restarted!');
         })->name('dev.queue.restart');
-        
+
         // Migration Operations
         Route::post('/migrate', function () {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             return back()->with('success', 'Migrations executed successfully!');
         })->name('dev.migrate');
-        
+
         Route::post('/migrate/fresh', function () {
             \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
             return back()->with('success', 'Database refreshed successfully!');
         })->name('dev.migrate.fresh');
-        
+
         Route::post('/migrate/seed', function () {
             \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
             return back()->with('success', 'Database seeded successfully!');
         })->name('dev.migrate.seed');
-        
+
         // Logs
         Route::get('/logs', function () {
             $logFile = storage_path('logs/laravel.log');
             $logs = '';
-            
+
             if (file_exists($logFile)) {
                 $logs = file_get_contents($logFile);
                 // Get last 100 lines
                 $logLines = explode("\n", $logs);
                 $logs = implode("\n", array_slice($logLines, -100));
             }
-            
+
             return view('dev.logs', compact('logs'));
         })->name('dev.logs');
-        
+
         Route::post('/logs/clear', function () {
             $logFile = storage_path('logs/laravel.log');
             if (file_exists($logFile)) {

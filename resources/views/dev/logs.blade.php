@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,16 +11,49 @@
             border-left: 4px solid #e5e7eb;
             transition: all 0.2s;
         }
-        .log-entry.emergency { border-left-color: #dc2626; background-color: #fef2f2; }
-        .log-entry.alert { border-left-color: #dc2626; background-color: #fef2f2; }
-        .log-entry.critical { border-left-color: #dc2626; background-color: #fef2f2; }
-        .log-entry.error { border-left-color: #dc2626; background-color: #fef2f2; }
-        .log-entry.warning { border-left-color: #f59e0b; background-color: #fffbeb; }
-        .log-entry.notice { border-left-color: #3b82f6; background-color: #eff6ff; }
-        .log-entry.info { border-left-color: #10b981; background-color: #f0fdf4; }
-        .log-entry.debug { border-left-color: #6b7280; background-color: #f9fafb; }
+
+        .log-entry.emergency {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .log-entry.alert {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .log-entry.critical {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .log-entry.error {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .log-entry.warning {
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+
+        .log-entry.notice {
+            border-left-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .log-entry.info {
+            border-left-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .log-entry.debug {
+            border-left-color: #6b7280;
+            background-color: #f9fafb;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
@@ -31,12 +65,19 @@
         <!-- Navigation -->
         <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
             <div class="flex flex-wrap gap-2 justify-center">
-                <a href="{{ route('dev.cache') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">🗂️ Cache Management</a>
-                <a href="{{ route('dev.info') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">ℹ️ System Info</a>
-                <a href="{{ route('dev.routes') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🛣️ Routes</a>
-                <a href="{{ route('dev.env') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🔧 Environment</a>
-                <a href="{{ route('dev.logs') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">📝 Logs</a>
-                <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🏠 Home</a>
+                <a href="{{ route('dev.cache') }}"
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">🗂️ Cache
+                    Management</a>
+                <a href="{{ route('dev.info') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">ℹ️ System Info</a>
+                <a href="{{ route('dev.routes') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🛣️ Routes</a>
+                <a href="{{ route('dev.env') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🔧 Environment</a>
+                <a href="{{ route('dev.logs') }}"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">📝 Logs</a>
+                <a href="/" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">🏠
+                    Home</a>
             </div>
         </div>
 
@@ -45,15 +86,18 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <h2 class="text-xl font-semibold text-gray-800">Log Controls</h2>
-                    <button onclick="refreshLogs()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
+                    <button onclick="refreshLogs()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
                         🔄 Refresh
                     </button>
-                    <button onclick="toggleAutoRefresh()" id="autoRefreshBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+                    <button onclick="toggleAutoRefresh()" id="autoRefreshBtn"
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
                         ▶️ Auto Refresh (OFF)
                     </button>
                 </div>
                 <div class="flex items-center gap-4">
-                    <select id="logLevelFilter" onchange="filterLogs()" class="px-3 py-2 border border-gray-300 rounded">
+                    <select id="logLevelFilter" onchange="filterLogs()"
+                        class="px-3 py-2 border border-gray-300 rounded">
                         <option value="">All Levels</option>
                         <option value="emergency">Emergency</option>
                         <option value="alert">Alert</option>
@@ -66,8 +110,8 @@
                     </select>
                     <form method="POST" action="{{ route('dev.logs.clear') }}" class="inline">
                         @csrf
-                        <button type="submit" onclick="return confirm('Are you sure you want to clear all logs?')" 
-                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">
+                        <button type="submit" onclick="return confirm('Are you sure you want to clear all logs?')"
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">
                             🗑️ Clear Logs
                         </button>
                     </form>
@@ -76,7 +120,7 @@
         </div>
 
         <!-- Success/Error Messages -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
                 <strong>Success!</strong> {{ session('success') }}
             </div>
@@ -96,7 +140,7 @@
             </div>
 
             <div class="max-h-96 overflow-y-auto" id="logContainer">
-                @if($logs)
+                @if ($logs)
                     <div class="p-6">
                         <pre class="text-sm font-mono text-gray-800 whitespace-pre-wrap" id="logContent">{{ $logs }}</pre>
                     </div>
@@ -122,7 +166,7 @@
                         $fileSizeFormatted = $fileExists ? number_format($fileSize / 1024, 2) . ' KB' : 'N/A';
                     @endphp
                     <div class="text-2xl mb-2">
-                        @if($fileExists)
+                        @if ($fileExists)
                             <span class="text-green-500">✅</span>
                         @else
                             <span class="text-red-500">❌</span>
@@ -205,7 +249,7 @@
 
         function toggleAutoRefresh() {
             const btn = document.getElementById('autoRefreshBtn');
-            
+
             if (isAutoRefreshOn) {
                 clearInterval(autoRefreshInterval);
                 btn.textContent = '▶️ Auto Refresh (OFF)';
@@ -222,19 +266,19 @@
         function filterLogs() {
             const filter = document.getElementById('logLevelFilter').value.toLowerCase();
             const logContent = document.getElementById('logContent');
-            
+
             if (!logContent) return;
-            
+
             const lines = logContent.textContent.split('\n');
             let filteredLines = lines;
-            
+
             if (filter) {
-                filteredLines = lines.filter(line => 
+                filteredLines = lines.filter(line =>
                     line.toLowerCase().includes('.' + filter + ':') ||
                     line.toLowerCase().includes('local.' + filter + ':')
                 );
             }
-            
+
             logContent.textContent = filteredLines.join('\n');
             document.getElementById('logCount').textContent = filteredLines.length;
         }
@@ -255,4 +299,5 @@
         }
     </script>
 </body>
+
 </html>
