@@ -3,10 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstanceController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index']);
 
 // Instance monitoring routes
 Route::get('/instance', [InstanceController::class, 'index'])->name('instance.index');
@@ -19,34 +18,24 @@ Route::get('/instance/debug', [InstanceController::class, 'debugInfo'])->name('i
 Route::get('/emergency/clear-cache', [SystemController::class, 'emergencyClearCache'])->name('emergency.clear-cache');
 
 // Development & Debug Routes (hanya untuk environment local/staging)  
-Route::group(['middleware' => function ($request, $next) {
-    if (!in_array(app()->environment(), ['local', 'staging'])) {
-        abort(404);
-    }
-    return $next($request);
-}], function () {
+Route::middleware(['dev.only'])->prefix('dev')->group(function () {
+    // Cache Operations
+    Route::get('/cache', [SystemController::class, 'cachePage'])->name('dev.cache');
+    Route::post('/cache/clear', [SystemController::class, 'clearCache'])->name('dev.cache.clear');
+    Route::post('/cache/config', [SystemController::class, 'cacheConfig'])->name('dev.cache.config');
+    Route::post('/cache/route', [SystemController::class, 'cacheRoute'])->name('dev.cache.route');
+    Route::post('/cache/view', [SystemController::class, 'cacheView'])->name('dev.cache.view');
+    Route::post('/cache/clear-all', [SystemController::class, 'clearAllCache'])->name('dev.cache.clear-all');
 
-    // Cache Management Routes
-    Route::prefix('dev')->group(function () {
+    // System Information
+    Route::get('/phpinfo', [SystemController::class, 'showPhpInfo'])->name('dev.phpinfo');
+    Route::get('/system-info', [SystemController::class, 'showSystemInfo'])->name('dev.system-info');
+    Route::get('/env', [SystemController::class, 'showEnvVariables'])->name('dev.env');
 
-        // Cache Operations
-        Route::get('/cache', [SystemController::class, 'cachePage'])->name('dev.cache');
-        Route::post('/cache/clear', [SystemController::class, 'clearCache'])->name('dev.cache.clear');
-        Route::post('/cache/config', [SystemController::class, 'cacheConfig'])->name('dev.cache.config');
-        Route::post('/cache/route', [SystemController::class, 'cacheRoute'])->name('dev.cache.route');
-        Route::post('/cache/view', [SystemController::class, 'cacheView'])->name('dev.cache.view');
-        Route::post('/cache/clear-all', [SystemController::class, 'clearAllCache'])->name('dev.cache.clear-all');
+    // Debug Tools
+    Route::get('/routes', [SystemController::class, 'showRoutes'])->name('dev.routes');
+    Route::get('/logs', [SystemController::class, 'viewLogs'])->name('dev.logs');
 
-        // System Information
-        Route::get('/phpinfo', [SystemController::class, 'showPhpInfo'])->name('dev.phpinfo');
-        Route::get('/system-info', [SystemController::class, 'showSystemInfo'])->name('dev.system-info');
-        Route::get('/env', [SystemController::class, 'showEnvVariables'])->name('dev.env');
-
-        // Debug Tools
-        Route::get('/routes', [SystemController::class, 'showRoutes'])->name('dev.routes');
-        Route::get('/logs', [SystemController::class, 'viewLogs'])->name('dev.logs');
-
-        // Main Development Dashboard
-        Route::get('/', [SystemController::class, 'showDashboard'])->name('dev.dashboard');
-    });
+    // Main Development Dashboard
+    Route::get('/', [SystemController::class, 'showDashboard'])->name('dev.dashboard');
 });
